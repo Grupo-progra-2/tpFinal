@@ -1,15 +1,14 @@
 package org.cine.modelo;
 
-public class Cliente {
-    private int idCliente;
-    private String nombre;
-    private String dni;
-    private String email;
+public class Cliente extends Persona {
+    private Integer idCliente;
 
     public Cliente() {
+        super();
     }
 
-    public Cliente(int idCliente, String nombre, String dni, String email) {
+    public Cliente(Integer idCliente, String nombre, String dni, String email) {
+        super(idCliente, nombre, dni, email);
         this.idCliente = idCliente;
         this.nombre = nombre;
         this.dni = dni;

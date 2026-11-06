@@ -1,5 +1,7 @@
 package org.cine.modelo;
 
+import org.cine.enums.EstadoReserva;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 

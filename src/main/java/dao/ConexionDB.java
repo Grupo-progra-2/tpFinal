@@ -9,9 +9,9 @@ import java.sql.Connection;
 
  class ConexionDB {  //le saco el public para que no se pueda instanciar desde otra clase, solo se puede acceder a traves del metodo obtenerConexion() que es static y devuelve la conexion a la base de datos
 
-    private static final String URL = "jdbc:mysql://localhost:3306/tienda";
-    private static final String USER = "";
-    private static final String PASS = "";
+    private static final String URL = "jdbc:mysql://localhost:3306/appCine";
+    private static final String USER = "root";
+    private static final String PASS = "1243";
 
     private static Connection conexion;
 

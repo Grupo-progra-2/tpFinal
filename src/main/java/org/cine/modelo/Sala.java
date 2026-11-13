@@ -35,6 +35,16 @@ public class Sala {
     public void setHabilitada(boolean habilitada) {
         this.habilitada = habilitada;
     }
+    public void setIdSala(int idSala) {
+        this.idSala = idSala;
+    }
+    public void setNumero(int numero) {
+        this.numero = numero;
+    }
+    public void setCapacidad(int capacidad) {
+        this.capacidad = capacidad;
+    }
+
 
     @Override
     public String toString() {

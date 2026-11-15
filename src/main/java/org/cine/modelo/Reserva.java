@@ -1,6 +1,7 @@
 package org.cine.modelo;
 
 import org.cine.enums.EstadoReserva;
+import org.cine.enums.TipoEntrada;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -10,18 +11,18 @@ public class Reserva {
     private Cliente cliente;
     private Funcion funcion;
     private int numeroAsiento;
-    private Entrada entrada;
+    private TipoEntrada tipoEntrada;
     private BigDecimal precioFinal;
     private LocalDateTime fechaReserva;
     private EstadoReserva estado;
 
-    public Reserva(int idReserva, Cliente cliente, Funcion funcion, int numeroAsiento, Entrada entrada, BigDecimal precioFinal, LocalDateTime fechaReserva, EstadoReserva estado) {
+    public Reserva(int idReserva, Cliente cliente, Funcion funcion, int numeroAsiento, TipoEntrada tipoEntrada, BigDecimal precioFinal, LocalDateTime fechaReserva, EstadoReserva estado) {
 
         this.idReserva = idReserva;
         this.cliente = cliente;
         this.funcion = funcion;
         this.numeroAsiento = numeroAsiento;
-        this.entrada = entrada;
+        this.tipoEntrada = tipoEntrada;
         this.precioFinal = precioFinal;
         this.fechaReserva = fechaReserva;
         this.estado = estado;
@@ -55,6 +56,8 @@ public class Reserva {
         return fechaReserva;
     }
 
+    public TipoEntrada getTipoEntrada() { return tipoEntrada; }
+
     public void setIdReserva(int idReserva) {
         this.idReserva = idReserva;
     }
@@ -83,6 +86,10 @@ public class Reserva {
         this.estado = estado;
     }
 
+    public void setTipoEntrada(TipoEntrada tipoEntrada) {
+        this.tipoEntrada = tipoEntrada;
+    }
+
 
 
     public void cancelar() {
@@ -100,6 +107,7 @@ public class Reserva {
                 " | Funcion: " + funcion.getIdFuncion() +
                 " | Asiento: " + numeroAsiento +
                 " | Precio: " + precioFinal +
+                " | Tipo de Entrada: " + tipoEntrada +
                 " | Estado: " + estado;
     }
 }

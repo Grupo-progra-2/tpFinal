@@ -67,7 +67,7 @@ public class Pelicula {
     public void setClasificacion(String clasificacion) {
         this.clasificacion = clasificacion;
     }
-    public
+
 
 
     @Override

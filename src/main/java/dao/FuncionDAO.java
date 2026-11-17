@@ -19,16 +19,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FuncionDAO {
-    static final String COLUMNAS = """
-            f.id_funcion, f.fecha_hora, f.precio_base, f.estado AS estado_funcion,
-            p.id_pelicula, p.titulo, p.genero, p.duracion_minutos, p.clasificacion, p.activa,
-            s.id_sala, s.numero, s.capacidad, s.habilitada
-            """;
-    static final String RELACIONES = """
+    private static final String CONSULTA = """
+            SELECT f.id_funcion, f.fecha_hora, f.precio_base, f.estado AS estado_funcion,
+                   p.id_pelicula, p.titulo, p.genero, p.duracion_minutos, p.clasificacion, p.activa,
+                   s.id_sala, s.numero, s.capacidad, s.habilitada
+            FROM funcion f
             JOIN pelicula p ON p.id_pelicula = f.id_pelicula
             JOIN sala s ON s.id_sala = f.id_sala
             """;
-    private static final String CONSULTA = "SELECT " + COLUMNAS + " FROM funcion f " + RELACIONES;
     private static final String DISPONIBLES =
             "f.estado = 'PROGRAMADA' AND f.fecha_hora > ? AND s.habilitada AND p.activa";
     private static final BigDecimal PRECIO_MAXIMO = new BigDecimal("99999999.99");
@@ -107,19 +105,20 @@ public class FuncionDAO {
     private void verificarHorario(Connection conexion, Funcion funcion, int duracion)
             throws SQLException, HorarioSuperpuestoException {
         String sql = """
-                SELECT 1 FROM funcion f
-                JOIN pelicula p ON p.id_pelicula = f.id_pelicula
+                SELECT f.fecha_hora, p.duracion_minutos
+                FROM funcion f JOIN pelicula p ON p.id_pelicula = f.id_pelicula
                 WHERE f.id_sala = ? AND f.estado = 'PROGRAMADA' AND f.fecha_hora < ?
-                    AND TIMESTAMPADD(MINUTE, p.duracion_minutos, f.fecha_hora) > ?
-                LIMIT 1
                 """;
         try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
             stmt.setInt(1, funcion.getSala().getIdSala());
             stmt.setObject(2, funcion.getFechaHora().plusMinutes(duracion));
-            stmt.setObject(3, funcion.getFechaHora());
             try (ResultSet fila = stmt.executeQuery()) {
-                if (fila.next()) {
-                    throw new HorarioSuperpuestoException("La sala ya tiene una función en ese horario.");
+                while (fila.next()) {
+                    LocalDateTime inicio = fila.getObject("fecha_hora", LocalDateTime.class);
+                    LocalDateTime fin = inicio.plusMinutes(fila.getInt("duracion_minutos"));
+                    if (fin.isAfter(funcion.getFechaHora())) {
+                        throw new HorarioSuperpuestoException("La sala ya tiene una función en ese horario.");
+                    }
                 }
             }
         }
@@ -144,22 +143,25 @@ public class FuncionDAO {
     }
 
     public List<Funcion> listarPorPelicula(int idPelicula) throws PersistenciaException {
-        return listar(CONSULTA + " WHERE " + DISPONIBLES
-                + " AND f.id_pelicula = ? ORDER BY f.fecha_hora, f.id_funcion",
-                LocalDateTime.now(), idPelicula);
+        return listarDisponibles(idPelicula);
     }
 
     public List<Funcion> listarDisponibles() throws PersistenciaException {
-        return listar(CONSULTA + " WHERE " + DISPONIBLES + " ORDER BY f.fecha_hora, f.id_funcion",
-                LocalDateTime.now());
+        return listarDisponibles(null);
     }
 
-    private List<Funcion> listar(String sql, Object... parametros) throws PersistenciaException {
+    private List<Funcion> listarDisponibles(Integer idPelicula) throws PersistenciaException {
+        String sql = CONSULTA + " WHERE " + DISPONIBLES;
+        if (idPelicula != null) {
+            sql += " AND f.id_pelicula = ?";
+        }
+        sql += " ORDER BY f.fecha_hora, f.id_funcion";
         List<Funcion> funciones = new ArrayList<>();
         try (Connection conexion = ConexionDB.obtenerConexion();
              PreparedStatement stmt = conexion.prepareStatement(sql)) {
-            for (int i = 0; i < parametros.length; i++) {
-                stmt.setObject(i + 1, parametros[i]);
+            stmt.setObject(1, LocalDateTime.now());
+            if (idPelicula != null) {
+                stmt.setInt(2, idPelicula);
             }
             try (ResultSet filas = stmt.executeQuery()) {
                 while (filas.next()) {

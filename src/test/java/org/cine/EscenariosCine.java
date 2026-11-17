@@ -107,6 +107,8 @@ final class EscenariosCine {
             debeFallar(ElementoNoEncontradoException.class, () -> cine.cancelarReserva(0));
             Reserva segunda = new GestorCine().crearReserva(cliente, id, 2, TipoEntrada.GENERAL, null);
             comprobar(segunda.getIdReserva() != primera.getIdReserva(), "volver a reservar con nuevo ID");
+            comprobar(cine.informeFuncion(id).equals("Entradas confirmadas: 1/3 | Recaudación: $1000.00"),
+                    "el informe cuenta solo reservas confirmadas");
             List<Reserva> historial = new GestorCine().listarReservasPorCliente(cliente);
             comprobar(historial.size() == 2 && historial.getLast().getEstado() == EstadoReserva.CANCELADA
                     && historial.getFirst().estaConfirmada(), "historial de estados en reconexión");

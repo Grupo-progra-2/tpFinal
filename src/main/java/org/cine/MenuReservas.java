@@ -1,19 +1,21 @@
 package org.cine;
 
-import dao.ClienteDAO;
-import dao.PeliculaDAO;
-import dao.SalaDAO;
 import excepciones.AsientoOcupadoException;
 import excepciones.DatoInvalidoException;
 import excepciones.ElementoNoEncontradoException;
 import excepciones.HorarioSuperpuestoException;
 import excepciones.PersistenciaException;
 import org.cine.enums.TipoEntrada;
+import org.cine.modelo.Cliente;
+import org.cine.modelo.Funcion;
+import org.cine.modelo.Pelicula;
 import org.cine.modelo.Reserva;
+import org.cine.modelo.Sala;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.List;
 
 final class MenuReservas {
     private final Consola consola;
@@ -34,20 +36,20 @@ final class MenuReservas {
                     4. Reservar asiento
                     5. Ver reservas por cliente
                     6. Cancelar reserva
+                    7. Informe de ocupación y recaudación
                     0. Salir del menú
                     """);
             try {
                 switch (consola.entero("Opción: ")) {
                     case 0 -> { return; }
                     case 1 -> programar();
-                    case 2 -> cine.listarFuncionesDisponibles()
-                            .forEach(f -> System.out.println(f + " | Precio: $" + f.getPrecioBase()));
+                    case 2 -> listarFunciones();
                     case 3 -> System.out.println("Asientos libres: " +
                             cine.listarAsientosDisponibles(consola.entero("ID de función: ")));
                     case 4 -> reservar();
-                    case 5 -> cine.listarReservasPorCliente(consola.entero("ID de cliente: "))
-                            .forEach(System.out::println);
+                    case 5 -> listarReservas();
                     case 6 -> cancelar();
+                    case 7 -> System.out.println(cine.informeFuncion(consola.entero("ID de función: ")));
                     default -> System.out.println("Opción inválida.");
                 }
             } catch (DatoInvalidoException | ElementoNoEncontradoException | HorarioSuperpuestoException
@@ -59,11 +61,28 @@ final class MenuReservas {
         }
     }
 
+    private void listarFunciones() throws PersistenciaException {
+        for (Funcion funcion : cine.listarFuncionesDisponibles()) {
+            System.out.println(funcion + " | Precio: $" + funcion.getPrecioBase());
+        }
+    }
+
+    private void listarReservas() throws PersistenciaException {
+        int cliente = consola.entero("ID de cliente: ");
+        for (Reserva reserva : cine.listarReservasPorCliente(cliente)) {
+            System.out.println(reserva);
+        }
+    }
+
     private void programar() throws PersistenciaException, ElementoNoEncontradoException,
             DatoInvalidoException, HorarioSuperpuestoException {
-        new PeliculaDAO().listar().forEach(p -> System.out.println(p.getIdPelicula() + ". " + p));
+        for (Pelicula pelicula : cine.listarPeliculas()) {
+            System.out.println(pelicula.getIdPelicula() + ". " + pelicula);
+        }
         int pelicula = consola.entero("ID de película: ");
-        new SalaDAO().listar().forEach(s -> System.out.println(s.getIdSala() + ". " + s));
+        for (Sala sala : cine.listarSalas()) {
+            System.out.println(sala.getIdSala() + ". " + sala);
+        }
         int sala = consola.entero("ID de sala: ");
         LocalDateTime fecha = LocalDateTime.parse(consola.texto("Fecha (AAAA-MM-DD HH:mm): ").replace(' ', 'T'));
         BigDecimal precio = consola.decimal("Precio base: ");
@@ -72,23 +91,29 @@ final class MenuReservas {
 
     private void reservar() throws PersistenciaException, ElementoNoEncontradoException,
             DatoInvalidoException, AsientoOcupadoException {
-        new ClienteDAO().listar().forEach(c -> System.out.println(c.getId() + ". " + c.getNombre() + " (" + c.getDni() + ")"));
+        for (Cliente cliente : cine.listarClientes()) {
+            System.out.println(cliente.getId() + ". " + cliente.getNombre() + " (" + cliente.getDni() + ")");
+        }
         int cliente = consola.entero("ID de cliente: ");
         int funcion = consola.entero("ID de función: ");
-        var libres = cine.listarAsientosDisponibles(funcion);
+        List<Integer> libres = cine.listarAsientosDisponibles(funcion);
         if (libres.isEmpty()) {
             System.out.println("No quedan asientos libres.");
             return;
         }
         System.out.println("Asientos libres: " + libres);
         int asiento = consola.entero("Asiento: ");
-        TipoEntrada tipo = switch (consola.entero("1. General | 2. Reducida: ")) {
-            case 1 -> TipoEntrada.GENERAL;
-            case 2 -> TipoEntrada.REDUCIDA;
-            default -> throw new DatoInvalidoException("Elegí un tipo de entrada válido.");
-        };
-        BigDecimal descuento = tipo == TipoEntrada.REDUCIDA
-                ? consola.decimal("Porcentaje de descuento (20 = 20%): ") : BigDecimal.ZERO;
+        int opcion = consola.entero("1. General | 2. Reducida: ");
+        TipoEntrada tipo;
+        BigDecimal descuento = BigDecimal.ZERO;
+        if (opcion == 1) {
+            tipo = TipoEntrada.GENERAL;
+        } else if (opcion == 2) {
+            tipo = TipoEntrada.REDUCIDA;
+            descuento = consola.decimal("Porcentaje de descuento (20 = 20%): ");
+        } else {
+            throw new DatoInvalidoException("Elegí un tipo de entrada válido.");
+        }
         Reserva reserva = cine.crearReserva(cliente, funcion, asiento, tipo, descuento);
         System.out.println("Reserva confirmada: " + reserva);
     }

@@ -1,7 +1,7 @@
 package org.cine.modelo;
 
 public class Pelicula {
-    private int idPelicula;
+    private Integer idPelicula;
     private String titulo;
     private String genero;
     private int duracionMinutos;
@@ -11,7 +11,7 @@ public class Pelicula {
     public Pelicula() {
     }
 
-    public Pelicula(int idPelicula, String titulo, String genero, int duracionMinutos, String clasificacion, boolean activa) {
+    public Pelicula(Integer idPelicula, String titulo, String genero, int duracionMinutos, String clasificacion, boolean activa) {
         this.idPelicula = idPelicula;
         this.titulo = titulo;
         this.genero = genero;
@@ -20,7 +20,7 @@ public class Pelicula {
         this.activa = activa;
     }
 
-    public int getIdPelicula() {
+    public Integer getIdPelicula() {
         return idPelicula;
     }
 
@@ -42,6 +42,10 @@ public class Pelicula {
 
     public boolean estaActiva() {
         return activa;
+    }
+
+    public void setIdPelicula(int idPelicula) {
+        this.idPelicula = idPelicula;
     }
 
     public void setTitulo(String titulo) {

@@ -59,6 +59,18 @@ public class Reserva {
         return estado == EstadoReserva.CONFIRMADA;
     }
 
+    public void setIdReserva(int idReserva) {
+        this.idReserva = idReserva;
+    }
+
+    public Entrada getEntrada() {
+        return entrada;
+    }
+
+    public LocalDateTime getFechaReserva() {
+        return fechaReserva;
+    }
+
     @Override
     public String toString() {
         return "Reserva: " + idReserva +

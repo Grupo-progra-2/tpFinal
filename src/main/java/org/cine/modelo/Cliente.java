@@ -36,6 +36,10 @@ public class Cliente {
         this.email = email;
     }
 
+    public void setIdCliente(int idCliente) {
+        this.idCliente = idCliente;
+    }
+
     @Override
     public String toString() {
         return "Cliente: " + nombre +

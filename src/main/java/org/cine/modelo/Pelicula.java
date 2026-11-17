@@ -52,6 +52,10 @@ public class Pelicula {
         this.activa = activa;
     }
 
+    public void setIdPelicula(int idPelicula) {
+        this.idPelicula = idPelicula;
+    }
+
     @Override
     public String toString() {
         return "Pelicula: " + titulo +

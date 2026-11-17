@@ -65,6 +65,10 @@ public class Funcion {
         estado = EstadoFuncion.CANCELADA;
     }
 
+    public void setIdFuncion(int idFuncion) {
+        this.idFuncion = idFuncion;
+    }
+
     @Override
     public String toString() {
         return "Funcion: " + idFuncion +

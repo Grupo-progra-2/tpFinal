@@ -56,9 +56,14 @@ public class Funcion {
     }
 
     public boolean estaDisponible() {
+        return estaDisponible(LocalDateTime.now());
+    }
+
+    public boolean estaDisponible(LocalDateTime ahora) {
         return estado == EstadoFuncion.PROGRAMADA
-                && sala.estaHabilitada()
-                && pelicula.estaActiva();
+                && fechaHora != null && fechaHora.isAfter(ahora)
+                && sala != null && sala.estaHabilitada()
+                && pelicula != null && pelicula.estaActiva();
     }
 
     public void cancelar() {

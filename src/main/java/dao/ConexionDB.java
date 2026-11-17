@@ -14,4 +14,12 @@ final class ConexionDB {
     static Connection obtenerConexion() throws SQLException {
         return CONFIGURACION.obtenerConexion();
     }
+
+    static void revertir(Connection conexion, Exception causa) {
+        try {
+            conexion.rollback();
+        } catch (SQLException errorDeRollback) {
+            causa.addSuppressed(errorDeRollback);
+        }
+    }
 }

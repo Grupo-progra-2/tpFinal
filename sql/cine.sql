@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS funcion (
     fecha_hora DATETIME NOT NULL,
     precio_base DECIMAL(10,2) NOT NULL,
     estado VARCHAR(20) NOT NULL,
+    INDEX idx_funcion_sala_hora (id_sala, fecha_hora),
     FOREIGN KEY (id_pelicula) REFERENCES pelicula(id_pelicula),
     FOREIGN KEY (id_sala) REFERENCES sala(id_sala)
 );

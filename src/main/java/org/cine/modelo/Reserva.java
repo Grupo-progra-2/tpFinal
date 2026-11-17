@@ -110,6 +110,7 @@ public class Reserva {
         return estado == EstadoReserva.CONFIRMADA;
     }
 
+    /** Solo está disponible al crear la reserva. MySQL recupera el tipo y el precio final históricos. */
     public Entrada getEntrada() {
         return entrada;
     }

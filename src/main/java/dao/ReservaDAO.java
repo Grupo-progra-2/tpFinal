@@ -19,7 +19,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -71,6 +70,9 @@ public class ReservaDAO {
     }
 
     public void guardarReserva(Reserva reserva) throws PersistenciaException {
+        if (reserva == null || reserva.getIdReserva() != 0 || !reserva.estaConfirmada()) {
+            throw new PersistenciaException("El alta requiere una reserva nueva en estado CONFIRMADA.");
+        }
         BigDecimal descuento = reserva.getEntrada() instanceof EntradaReducida reducida
                 ? reducida.getPorcentajeDescuento() : null;
         if (reserva.getTipoEntrada() == TipoEntrada.REDUCIDA && descuento == null) {
@@ -129,7 +131,7 @@ public class ReservaDAO {
             stmt.setInt(3, reserva.getNumeroAsiento());
             stmt.setString(4, reserva.getTipoEntrada().name());
             stmt.setBigDecimal(5, reserva.getPrecioFinal());
-            stmt.setTimestamp(6, Timestamp.valueOf(reserva.getFechaReserva()));
+            stmt.setObject(6, reserva.getFechaReserva());
             stmt.setString(7, reserva.getEstado().name());
             stmt.executeUpdate();
             try (ResultSet claves = stmt.getGeneratedKeys()) {

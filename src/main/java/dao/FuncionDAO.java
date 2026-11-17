@@ -13,7 +13,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,13 +31,14 @@ public class FuncionDAO {
     private static final String CONSULTA = "SELECT " + COLUMNAS + " FROM funcion f " + RELACIONES;
     private static final String DISPONIBLES =
             "f.estado = 'PROGRAMADA' AND f.fecha_hora > ? AND s.habilitada AND p.activa";
+    private static final BigDecimal PRECIO_MAXIMO = new BigDecimal("99999999.99");
 
     public void guardar(Funcion funcion)
             throws PersistenciaException, DatoInvalidoException, HorarioSuperpuestoException {
         if (funcion == null || !funcion.estaDisponible()
                 || funcion.getPelicula().getIdPelicula() == null || funcion.getSala().getIdSala() <= 0
                 || funcion.getPrecioBase() == null || funcion.getPrecioBase().signum() <= 0
-                || funcion.getPrecioBase().compareTo(new java.math.BigDecimal("99999999.99")) > 0
+                || funcion.getPrecioBase().compareTo(PRECIO_MAXIMO) > 0
                 || funcion.getPrecioBase().stripTrailingZeros().scale() > 2) {
             throw new DatoInvalidoException("Elegí una sala habilitada, una película activa, una fecha futura y un precio positivo de hasta dos decimales.");
         }
@@ -57,7 +58,7 @@ public class FuncionDAO {
                 try (PreparedStatement stmt = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
                     stmt.setInt(1, funcion.getPelicula().getIdPelicula());
                     stmt.setInt(2, funcion.getSala().getIdSala());
-                    stmt.setTimestamp(3, Timestamp.valueOf(funcion.getFechaHora()));
+                    stmt.setObject(3, funcion.getFechaHora());
                     stmt.setBigDecimal(4, funcion.getPrecioBase());
                     stmt.setString(5, funcion.getEstado().name());
                     stmt.executeUpdate();
@@ -114,8 +115,8 @@ public class FuncionDAO {
                 """;
         try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
             stmt.setInt(1, funcion.getSala().getIdSala());
-            stmt.setTimestamp(2, Timestamp.valueOf(funcion.getFechaHora().plusMinutes(duracion)));
-            stmt.setTimestamp(3, Timestamp.valueOf(funcion.getFechaHora()));
+            stmt.setObject(2, funcion.getFechaHora().plusMinutes(duracion));
+            stmt.setObject(3, funcion.getFechaHora());
             try (ResultSet fila = stmt.executeQuery()) {
                 if (fila.next()) {
                     throw new HorarioSuperpuestoException("La sala ya tiene una función en ese horario.");
@@ -145,12 +146,12 @@ public class FuncionDAO {
     public List<Funcion> listarPorPelicula(int idPelicula) throws PersistenciaException {
         return listar(CONSULTA + " WHERE " + DISPONIBLES
                 + " AND f.id_pelicula = ? ORDER BY f.fecha_hora, f.id_funcion",
-                Timestamp.valueOf(LocalDateTime.now()), idPelicula);
+                LocalDateTime.now(), idPelicula);
     }
 
     public List<Funcion> listarDisponibles() throws PersistenciaException {
         return listar(CONSULTA + " WHERE " + DISPONIBLES + " ORDER BY f.fecha_hora, f.id_funcion",
-                Timestamp.valueOf(LocalDateTime.now()));
+                LocalDateTime.now());
     }
 
     private List<Funcion> listar(String sql, Object... parametros) throws PersistenciaException {

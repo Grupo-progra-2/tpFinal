@@ -60,6 +60,10 @@ CREATE TABLE IF NOT EXISTS reserva (
     precio_final DECIMAL(10,2) NOT NULL,
     fecha_reserva DATETIME NOT NULL,
     estado VARCHAR(20) NOT NULL,
+    asiento_confirmado INT GENERATED ALWAYS AS (
+        CASE WHEN estado = 'CONFIRMADA' THEN numero_asiento ELSE NULL END
+    ) STORED,
+    UNIQUE KEY uq_reserva_asiento_confirmado (id_funcion, asiento_confirmado),
     FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente),
     FOREIGN KEY (id_funcion) REFERENCES funcion(id_funcion)
 );

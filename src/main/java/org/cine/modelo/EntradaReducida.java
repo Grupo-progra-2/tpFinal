@@ -30,6 +30,10 @@ public class EntradaReducida extends Entrada implements Descontable {
         return precioBase.subtract(calcularDescuento());
     }
 
+    public BigDecimal getPorcentajeDescuento() {
+        return porcentajeDescuento;
+    }
+
     @Override
     public TipoEntrada getTipo() {
         return TipoEntrada.REDUCIDA;

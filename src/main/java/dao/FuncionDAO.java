@@ -13,19 +13,18 @@ import excepciones.PersistenciaException;
 public class FuncionDAO {
 
 
-        private Connection conexion;
         private PeliculaDAO peliculaDAO;
         private SalaDAO salaDAO;
 
         public FuncionDAO() throws PersistenciaException {
-            this.conexion = ConexionDB.obtenerConexion();
             this.peliculaDAO = new PeliculaDAO();
             this.salaDAO = new SalaDAO();
         }
 
         public void guardar(Funcion funcion) throws PersistenciaException {
-            String sql = "INSERT INTO funcion (idPelicula, idSala, fechaHora, precioBase, estado) VALUES (?, ?, ?, ?, ?)";
-            try (PreparedStatement stmt = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            String sql = "INSERT INTO funcion (id_pelicula, id_sala, fecha_hora, precio_base, estado) VALUES (?, ?, ?, ?, ?)";
+            try (Connection conexion = ConexionDB.obtenerConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
                 stmt.setInt(1, funcion.getPelicula().getIdPelicula());
                 stmt.setInt(2, funcion.getSala().getIdSala());
                 stmt.setTimestamp(3, Timestamp.valueOf(funcion.getFechaHora()));
@@ -35,8 +34,8 @@ public class FuncionDAO {
 
                 try (ResultSet keys = stmt.getGeneratedKeys()) {
                     if (keys.next()) {
-                        // Si agregaste un setIdFuncion en tu clase Funcion, descomentá la línea de abajo:
-                        // funcion.setIdFuncion(keys.getInt(1));
+
+                        funcion.setIdFuncion(keys.getInt(1));
                     }
                 }
             } catch (SQLException e) {
@@ -45,17 +44,18 @@ public class FuncionDAO {
         }
 
         public Funcion buscarPorId(int idFuncion) throws PersistenciaException {
-            String sql = "SELECT * FROM funcion WHERE idFuncion = ?";
+            String sql = "SELECT * FROM funcion WHERE id_funcion = ?";
             return extraerUnico(sql, idFuncion);
         }
 
         public List<Funcion> listarPorPelicula(int idPelicula) throws PersistenciaException {
-            String sql = "SELECT * FROM funcion WHERE idPelicula = ? AND estado != 'CANCELADA' ORDER BY fechaHora ASC";
+            String sql = "SELECT * FROM funcion WHERE id_pelicula = ? AND estado != 'CANCELADA' ORDER BY fecha_hora ASC";
             return extraerLista(sql, idPelicula);
         }
 
         private Funcion extraerUnico(String sql, Object... parametros) throws PersistenciaException {
-            try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            try (Connection conexion = ConexionDB.obtenerConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
                 for (int i = 0; i < parametros.length; i++) {
                     stmt.setObject(i + 1, parametros[i]);
                 }
@@ -70,7 +70,8 @@ public class FuncionDAO {
 
         private List<Funcion> extraerLista(String sql, Object... parametros) throws PersistenciaException {
             List<Funcion> lista = new ArrayList<>();
-            try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            try (Connection conexion = ConexionDB.obtenerConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
                 for (int i = 0; i < parametros.length; i++) {
                     stmt.setObject(i + 1, parametros[i]);
                 }
@@ -87,11 +88,11 @@ public class FuncionDAO {
         }
 
         private Funcion mapearFuncion(ResultSet rs) throws SQLException, PersistenciaException {
-            int id = rs.getInt("idFuncion");
-            org.cine.modelo.Pelicula p = peliculaDAO.buscarPorId(rs.getInt("idPelicula"));
-            org.cine.modelo.Sala s = salaDAO.buscarPorId(rs.getInt("idSala"));
-            LocalDateTime fechaHora = rs.getTimestamp("fechaHora").toLocalDateTime();
-            BigDecimal precio = rs.getBigDecimal("precioBase");
+            int id = rs.getInt("id_funcion");
+            org.cine.modelo.Pelicula p = peliculaDAO.buscarPorId(rs.getInt("id_pelicula"));
+            org.cine.modelo.Sala s = salaDAO.buscarPorId(rs.getInt("id_sala"));
+            LocalDateTime fechaHora = rs.getTimestamp("fecha_hora").toLocalDateTime();
+            BigDecimal precio = rs.getBigDecimal("precio_base");
             EstadoFuncion estado = EstadoFuncion.valueOf(rs.getString("estado"));
 
             return new Funcion(id, p, s, fechaHora, precio, estado);

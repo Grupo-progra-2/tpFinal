@@ -8,14 +8,10 @@ import excepciones.PersistenciaException;
 
 public class SalaDAO {
 
-    private Connection conexion;
 
-    public SalaDAO()throws PersistenciaException {
-        this.conexion = ConexionDB.obtenerConexion();
-    }
 
     public Sala buscarPorId(int idSala) throws PersistenciaException {
-        String sql = "SELECT * FROM sala WHERE idSala = ?";
+        String sql = "SELECT * FROM sala WHERE id_sala = ?";
         return extraerUnico(sql, idSala);
     }
 
@@ -25,7 +21,8 @@ public class SalaDAO {
     }
 
     private Sala extraerUnico(String sql, Object... parametros) throws PersistenciaException {
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+        try (Connection conexion = ConexionDB.obtenerConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
             for (int i = 0; i < parametros.length; i++) {
                 stmt.setObject(i + 1, parametros[i]);
             }
@@ -40,7 +37,8 @@ public class SalaDAO {
 
     private List<Sala> extraerLista(String sql, Object... parametros) throws PersistenciaException {
         List<Sala> lista = new ArrayList<>();
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+        try (Connection conexion = ConexionDB.obtenerConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
             for (int i = 0; i < parametros.length; i++) {
                 stmt.setObject(i + 1, parametros[i]);
             }
@@ -57,7 +55,7 @@ public class SalaDAO {
 
     private Sala mapearSala(ResultSet rs) throws SQLException {
         Sala s = new Sala();
-        s.setIdSala(rs.getInt("idSala"));
+        s.setIdSala(rs.getInt("id_sala"));
         s.setNumero(rs.getInt("numero"));
         s.setCapacidad(rs.getInt("capacidad"));
         s.setHabilitada(rs.getBoolean("habilitada"));

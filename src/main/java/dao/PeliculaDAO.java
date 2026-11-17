@@ -1,21 +1,19 @@
 package dao;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 
 import excepciones.PersistenciaException;
 import org.cine.modelo.Pelicula;
 
 public class PeliculaDAO {
-    private Connection conexion;
 
-    public PeliculaDAO() {
-        this.conexion = ConexionDB.obtenerConexion();
-    }
 
     public void guardarPelicula(Pelicula pelicula) throws PersistenciaException {
         String sql = "INSERT INTO pelicula (titulo, genero, duracion_minutos, clasificacion, activa) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+        try (Connection conexion = ConexionDB.obtenerConexion();
+             PreparedStatement ps = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, pelicula.getTitulo());
             ps.setString(2, pelicula.getGenero());
             ps.setInt(3, pelicula.getDuracionMinutos());
@@ -36,8 +34,9 @@ public class PeliculaDAO {
     }
 
     public void actualizar(Pelicula pelicula) throws PersistenciaException {
-        String sql = "UPDATE pelicula SET titulo = ?, genero = ?, duracionMinutos = ?, clasificacion = ?, activa = ? WHERE idPelicula = ?";
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+        String sql = "UPDATE pelicula SET titulo = ?, genero = ?, duracion_minutos = ?, clasificacion = ?, activa = ? WHERE id_pelicula = ?";
+        try (Connection conexion = ConexionDB.obtenerConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
             stmt.setString(1, pelicula.getTitulo());
             stmt.setString(2, pelicula.getGenero());
             stmt.setInt(3, pelicula.getDuracionMinutos());
@@ -55,7 +54,7 @@ public class PeliculaDAO {
 
 
     public Pelicula buscarPorId(int idPelicula) throws PersistenciaException {
-        String sql = "SELECT * FROM pelicula WHERE idPelicula = ?";
+        String sql = "SELECT * FROM pelicula WHERE id_pelicula = ?";
         return extraerUnico(sql, idPelicula);
     }
 
@@ -65,7 +64,8 @@ public class PeliculaDAO {
     }
 
     private Pelicula extraerUnico(String sql, Object... parametros) throws PersistenciaException {
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+        try (Connection conexion = ConexionDB.obtenerConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
             for (int i = 0; i < parametros.length; i++) {
                 stmt.setObject(i + 1, parametros[i]);
             }
@@ -80,7 +80,8 @@ public class PeliculaDAO {
 
     private List<Pelicula> extraerLista(String sql, Object... parametros) throws PersistenciaException {
         List<Pelicula> lista = new ArrayList<>();
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+        try (Connection conexion = ConexionDB.obtenerConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
             for (int i = 0; i < parametros.length; i++) {
                 stmt.setObject(i + 1, parametros[i]);
             }
@@ -97,10 +98,10 @@ public class PeliculaDAO {
 
     private Pelicula mapearPelicula(ResultSet rs) throws SQLException {
         Pelicula p = new Pelicula();
-        p.setIdPelicula(rs.getInt("idPelicula"));
+        p.setIdPelicula(rs.getInt("id_pelicula"));
         p.setTitulo(rs.getString("titulo"));
         p.setGenero(rs.getString("genero"));
-        p.setDuracionMinutos(rs.getInt("duracionMinutos"));
+        p.setDuracionMinutos(rs.getInt("duracion_minutos"));
         p.setClasificacion(rs.getString("clasificacion"));
         p.setActiva(rs.getBoolean("activa"));
         return p;

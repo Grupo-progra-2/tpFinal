@@ -1,34 +1,17 @@
 package dao;
 
-import excepciones.PersistenciaException;
+import org.cine.dao.ConexionBD;
 
-import java.sql.SQLException;
-import java.sql.DriverManager;
 import java.sql.Connection;
+import java.sql.SQLException;
 
-
- class ConexionDB {  //le saco el public para que no se pueda instanciar desde otra clase, solo se puede acceder a traves del metodo obtenerConexion() que es static y devuelve la conexion a la base de datos
-
-    private static final String URL = "jdbc:mysql://localhost:3306/appCine";
-    private static final String USER = "root";
-    private static final String PASS = "1243";
-
-    private static Connection conexion;
+final class ConexionDB {
+    private static final ConexionBD CONFIGURACION = new ConexionBD();
 
     private ConexionDB() {
-        // Constructor privado para evitar instanciación
     }
 
-     static Connection obtenerConexion() { //aca tambien le saco el public para que no se pueda acceder desde otra clase externa al paquete DAO
-        try {
-            if (conexion == null || conexion.isClosed()) {      //se reutiliza si esta abierta, si no se crea una nueva conexion
-                conexion = DriverManager.getConnection(URL, USER, PASS);
-            }
-        } catch (SQLException e) {
-            throw new PersistenciaException("Error de conexión: " + e.getMessage());
-        }
-        return conexion;
+    static Connection obtenerConexion() throws SQLException {
+        return CONFIGURACION.obtenerConexion();
     }
-
-
 }

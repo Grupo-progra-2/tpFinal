@@ -8,17 +8,14 @@ import excepciones.PersistenciaException;
 
 public class ClienteDAO {
 
-    private Connection conexion;
 
-    public ClienteDAO() throws PersistenciaException {
-        this.conexion = ConexionDB.obtenerConexion();
-    }
 
 
     public void guardarCliente (Cliente cliente) throws PersistenciaException {
-        String sql = "INSERT INTO cliente (nombre, apellido, dni, email, clave_acceso) VALUES (?,?,?,?,?,?)";
+        String sql = "INSERT INTO cliente (nombre, apellido, dni, email, clave_acceso) VALUES (?, ?, ?, ?, ?)";
 
-        try(PreparedStatement ps = conexion.prepareStatement (sql, Statement.RETURN_GENERATED_KEYS)){
+        try (Connection conexion = ConexionDB.obtenerConexion();
+             PreparedStatement ps = conexion.prepareStatement (sql, Statement.RETURN_GENERATED_KEYS)){
             ps.setString(1, cliente.getNombre());
             ps.setString(2, cliente.getApellido());
             ps.setString(3, cliente.getDni());
@@ -43,9 +40,10 @@ public class ClienteDAO {
 
 
     public void actualizar (Cliente cliente) throws PersistenciaException {
-        String sql = "UPDATE cliente SET nombre = ?, apellido = ?, dni = ?, email = ? , clave_acceso = ? WHERE idCliente = ?";
+        String sql = "UPDATE cliente SET nombre = ?, apellido = ?, dni = ?, email = ? , clave_acceso = ? WHERE id_cliente = ?";
 
-        try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+        try (Connection conexion = ConexionDB.obtenerConexion();
+             PreparedStatement ps = conexion.prepareStatement(sql)) {
             ps.setString(1, cliente.getNombre());
             ps.setString(2, cliente.getApellido());
             ps.setString(3, cliente.getDni());
@@ -68,7 +66,7 @@ public class ClienteDAO {
     }
 
     public Cliente buscarPorId(int id) throws PersistenciaException {
-        String sql = "SELECT * FROM cliente WHERE idCliente = ?";
+        String sql = "SELECT * FROM cliente WHERE id_cliente = ?";
         return extraerClienteUnico(sql, id);
     }
 
@@ -78,12 +76,13 @@ public class ClienteDAO {
     }
 
     public Cliente buscarPorDniYClave(String dni, String clave) throws PersistenciaException {
-        String sql = "SELECT * FROM cliente WHERE dni = ? AND claveAcceso = ?";
+        String sql = "SELECT * FROM cliente WHERE dni = ? AND clave_acceso = ?";
         return extraerClienteUnico(sql, dni, clave);
     }
 
     private Cliente extraerClienteUnico(String sql, Object... parametros) throws PersistenciaException { //object... parametros permite pasar un número variable de argumentos
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+        try (Connection conexion = ConexionDB.obtenerConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
             for (int i = 0; i < parametros.length; i++) {
                 stmt.setObject(i + 1, parametros[i]);
             }
@@ -98,7 +97,8 @@ public class ClienteDAO {
 
     private List<Cliente> extraerClientesLista(String sql, Object... parametros) throws PersistenciaException {
         List<Cliente> lista = new ArrayList<>();
-        try (PreparedStatement stmt = conexion.prepareStatement(sql)) {
+        try (Connection conexion = ConexionDB.obtenerConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
             for (int i = 0; i < parametros.length; i++) {
                 stmt.setObject(i + 1, parametros[i]);
             }
@@ -115,12 +115,12 @@ public class ClienteDAO {
 
     private Cliente mapearCliente(ResultSet rs) throws SQLException {
         Cliente c = new Cliente();
-        c.setId(rs.getInt("idCliente"));
+        c.setId(rs.getInt("id_cliente"));
         c.setNombre(rs.getString("nombre"));
         c.setApellido(rs.getString("apellido"));
         c.setDni(rs.getString("dni"));
         c.setEmail(rs.getString("email"));
-        c.setClaveAcceso(rs.getString("claveAcceso"));
+        c.setClaveAcceso(rs.getString("clave_acceso"));
         return c;
     }
 

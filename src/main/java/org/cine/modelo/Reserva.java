@@ -12,6 +12,7 @@ public class Reserva {
     private Funcion funcion;
     private int numeroAsiento;
     private TipoEntrada tipoEntrada;
+    private Entrada entrada;
     private BigDecimal precioFinal;
     private LocalDateTime fechaReserva;
     private EstadoReserva estado;
@@ -26,6 +27,12 @@ public class Reserva {
         this.precioFinal = precioFinal;
         this.fechaReserva = fechaReserva;
         this.estado = estado;
+    }
+
+    public Reserva(int idReserva, Cliente cliente, Funcion funcion, int numeroAsiento, Entrada entrada,
+                   BigDecimal precioFinal, LocalDateTime fechaReserva, EstadoReserva estado) {
+        this(idReserva, cliente, funcion, numeroAsiento, entrada.getTipo(), precioFinal, fechaReserva, estado);
+        this.entrada = entrada;
     }
 
     public int getIdReserva() {
@@ -88,6 +95,9 @@ public class Reserva {
 
     public void setTipoEntrada(TipoEntrada tipoEntrada) {
         this.tipoEntrada = tipoEntrada;
+        if (entrada != null && entrada.getTipo() != tipoEntrada) {
+            entrada = null;
+        }
     }
 
 
@@ -98,6 +108,10 @@ public class Reserva {
 
     public boolean estaConfirmada() {
         return estado == EstadoReserva.CONFIRMADA;
+    }
+
+    public Entrada getEntrada() {
+        return entrada;
     }
 
     @Override

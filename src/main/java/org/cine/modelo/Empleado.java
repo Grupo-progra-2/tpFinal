@@ -22,20 +22,12 @@ public class Empleado extends Persona {
         return legajo;
     }
 
-    public String getClaveAcceso() {
-        return claveAcceso;
-    }
-
     public boolean esAdmin() {
         return esAdmin;
     }
 
     public void setLegajo(String legajo) {
         this.legajo = legajo;
-    }
-
-    public void setClaveAcceso(String claveAcceso) {
-        this.claveAcceso = claveAcceso;
     }
 
     public void setEsAdmin(boolean esAdmin) {

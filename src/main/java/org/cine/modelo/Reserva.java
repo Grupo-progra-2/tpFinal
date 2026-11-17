@@ -1,7 +1,6 @@
 package org.cine.modelo;
 
 import org.cine.enums.EstadoReserva;
-import org.cine.enums.TipoEntrada;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -98,6 +97,18 @@ public class Reserva {
 
     public boolean estaConfirmada() {
         return estado == EstadoReserva.CONFIRMADA;
+    }
+
+    public void setIdReserva(int idReserva) {
+        this.idReserva = idReserva;
+    }
+
+    public Entrada getEntrada() {
+        return entrada;
+    }
+
+    public LocalDateTime getFechaReserva() {
+        return fechaReserva;
     }
 
     @Override

@@ -13,6 +13,10 @@ public class Cliente extends Persona {
 
 
 
+    public void setIdCliente(int idCliente) {
+        this.idCliente = idCliente;
+    }
+
     @Override
     public String toString() {  //podemos usar el super.toString() para llamar al metodo toString de la clase padre y asi no repetir codigo.
         return "Cliente: " + super.toString() ;

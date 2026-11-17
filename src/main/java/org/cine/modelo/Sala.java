@@ -46,6 +46,10 @@ public class Sala {
     }
 
 
+    public void setIdSala(int idSala) {
+        this.idSala = idSala;
+    }
+
     @Override
     public String toString() {
         return "Sala: " + numero +

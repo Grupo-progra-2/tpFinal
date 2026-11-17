@@ -56,19 +56,9 @@ public class Pelicula {
         this.activa = activa;
     }
 
-    public void setGenero(String genero) {
-        this.genero = genero;
+    public void setIdPelicula(int idPelicula) {
+        this.idPelicula = idPelicula;
     }
-
-    public void setDuracionMinutos(int duracionMinutos) {
-        this.duracionMinutos = duracionMinutos;
-    }
-
-    public void setClasificacion(String clasificacion) {
-        this.clasificacion = clasificacion;
-    }
-
-
 
     @Override
     public String toString() {

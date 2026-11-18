@@ -106,9 +106,18 @@ public class ReservaDAO {
         try (Connection conexion = ConexionDB.obtenerConexion();
              PreparedStatement stmt = conexion.prepareStatement(sql)) {
             stmt.setInt(1, idReserva);
-            if (stmt.executeUpdate() == 0 && estadoActual(conexion, idReserva) != EstadoReserva.CANCELADA) {
+
+            if (stmt.executeUpdate() == 0) {
+
+                EstadoReserva estado = estadoActual(conexion, idReserva);
+
+                if (estado == EstadoReserva.CANCELADA) {
+                    throw new IllegalArgumentException("Esta reserva ya fue cancelada.");
+                }
+
                 throw new PersistenciaException("La reserva no se puede cancelar en su estado actual.");
             }
+
         } catch (SQLException e) {
             throw new PersistenciaException("No se pudo cancelar la reserva.", e);
         }

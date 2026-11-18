@@ -103,6 +103,12 @@ final class MenuReservas {
         }
         System.out.println("Asientos libres: " + libres);
         int asiento = consola.entero("Asiento: ");
+
+        while (!libres.contains(asiento)) {
+            System.out.println("Ese asiento no está disponible.");
+            System.out.println("Asientos libres: " + libres);
+            asiento = consola.entero("Elegí otro asiento: ");
+        }
         int opcion = consola.entero("1. General | 2. Reducida: ");
         TipoEntrada tipo;
         BigDecimal descuento = BigDecimal.ZERO;

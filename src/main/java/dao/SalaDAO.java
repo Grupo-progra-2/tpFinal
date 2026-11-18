@@ -20,6 +20,53 @@ public class SalaDAO {
         return extraerLista(sql);
     }
 
+    public void guardar(Sala sala) throws PersistenciaException {
+        String sql = "INSERT INTO sala (numero, capacidad, habilitada) VALUES (?, ?, ?)";
+
+        try (Connection conexion = ConexionDB.obtenerConexion();
+             PreparedStatement ps = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+            ps.setInt(1, sala.getNumero());
+            ps.setInt(2, sala.getCapacidad());
+            ps.setBoolean(3, sala.estaHabilitada());
+
+            ps.executeUpdate();
+
+            try (ResultSet claves = ps.getGeneratedKeys()) {
+                if (claves.next()) {
+                    sala.setIdSala(claves.getInt(1));
+                }
+            }
+
+        } catch (SQLException e) {
+            throw new PersistenciaException("Error al guardar la sala", e);
+        }
+    }
+
+    public void actualizar(Sala sala) throws PersistenciaException {
+        String sql = "UPDATE sala SET numero = ?, capacidad = ?, habilitada = ? WHERE id_sala = ?";
+
+        try (Connection conexion = ConexionDB.obtenerConexion();
+             PreparedStatement ps = conexion.prepareStatement(sql)) {
+
+            ps.setInt(1, sala.getNumero());
+            ps.setInt(2, sala.getCapacidad());
+            ps.setBoolean(3, sala.estaHabilitada());
+            ps.setInt(4, sala.getIdSala());
+
+            int filas = ps.executeUpdate();
+
+            if (filas == 0) {
+                throw new PersistenciaException("No existe la sala indicada.");
+            }
+
+        } catch (SQLException e) {
+            throw new PersistenciaException("Error al actualizar la sala", e);
+        }
+    }
+
+
+
     private Sala extraerUnico(String sql, Object... parametros) throws PersistenciaException {
         try (Connection conexion = ConexionDB.obtenerConexion();
              PreparedStatement stmt = conexion.prepareStatement(sql)) {

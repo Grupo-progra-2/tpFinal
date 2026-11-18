@@ -14,7 +14,6 @@ import org.cine.modelo.Sala;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 
 final class MenuReservas {
@@ -28,8 +27,9 @@ final class MenuReservas {
 
     void ejecutar() {
         while (true) {
+            consola.limpiar();
+            consola.encabezado("FUNCIONES Y RESERVAS");
             System.out.println("""
-                    Funciones y reservas
                     1. Programar función
                     2. Ver funciones disponibles
                     3. Ver asientos libres
@@ -54,10 +54,9 @@ final class MenuReservas {
                 }
             } catch (DatoInvalidoException | ElementoNoEncontradoException | HorarioSuperpuestoException
                      | AsientoOcupadoException | PersistenciaException | IllegalArgumentException e) {
-                System.out.println(e.getMessage());
-            } catch (DateTimeParseException e) {
-                System.out.println("Usá el formato AAAA-MM-DD HH:mm para la fecha y la hora.");
+                System.out.println("Error: " + e.getMessage());
             }
+            consola.pausar();
         }
     }
 
@@ -84,8 +83,9 @@ final class MenuReservas {
             System.out.println(sala.getIdSala() + ". " + sala);
         }
         int sala = consola.entero("ID de sala: ");
-        LocalDateTime fecha = LocalDateTime.parse(consola.texto("Fecha (AAAA-MM-DD HH:mm): ").replace(' ', 'T'));
-        BigDecimal precio = consola.decimal("Precio base: ");
+        // Se vuelve a pedir el dato hasta que sea válido (fecha con formato correcto y futura, precio mayor a 0)
+        LocalDateTime fecha = consola.fechaFutura("Fecha (AAAA-MM-DD HH:mm): ");
+        BigDecimal precio = consola.precio("Precio base: ");
         System.out.println("Función programada: " + cine.programarFuncion(pelicula, sala, fecha, precio));
     }
 
@@ -116,7 +116,7 @@ final class MenuReservas {
             tipo = TipoEntrada.GENERAL;
         } else if (opcion == 2) {
             tipo = TipoEntrada.REDUCIDA;
-            descuento = consola.decimal("Porcentaje de descuento (20 = 20%): ");
+            descuento = consola.porcentaje("Porcentaje de descuento (20 = 20%): ");
         } else {
             throw new DatoInvalidoException("Elegí un tipo de entrada válido.");
         }

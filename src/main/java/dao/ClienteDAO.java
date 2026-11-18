@@ -39,6 +39,20 @@ public class ClienteDAO {
 
 
 
+    public void eliminar(int id) throws PersistenciaException {
+        String sql = "DELETE FROM cliente WHERE id_cliente = ?";
+
+        try (Connection conexion = ConexionDB.obtenerConexion();
+             PreparedStatement ps = conexion.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            if (ps.executeUpdate() == 0) {
+                throw new PersistenciaException("No se encontró el cliente con ID: " + id);
+            }
+        } catch (SQLException e) {
+            throw new PersistenciaException("Error al dar de baja el cliente: " + e.getMessage(), e);
+        }
+    }
+
     public void actualizar (Cliente cliente) throws PersistenciaException {
         String sql = "UPDATE cliente SET nombre = ?, apellido = ?, dni = ?, email = ? , clave_acceso = ? WHERE id_cliente = ?";
 
@@ -73,11 +87,6 @@ public class ClienteDAO {
     public Cliente buscarPorDni(String dni) throws PersistenciaException {
         String sql = "SELECT * FROM cliente WHERE dni = ?";
         return extraerClienteUnico(sql, dni);
-    }
-
-    public Cliente buscarPorDniYClave(String dni, String clave) throws PersistenciaException {
-        String sql = "SELECT * FROM cliente WHERE dni = ? AND clave_acceso = ?";
-        return extraerClienteUnico(sql, dni, clave);
     }
 
     private Cliente extraerClienteUnico(String sql, Object... parametros) throws PersistenciaException { //object... parametros permite pasar un número variable de argumentos

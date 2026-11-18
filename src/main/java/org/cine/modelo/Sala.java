@@ -51,6 +51,6 @@ public class Sala {
     public String toString() {
         return "Sala: " + numero +
                 " | Capacidad: " + capacidad +
-                " | Habilitada: " + habilitada;
+                " | Estado: " + (habilitada ? "Habilitada" : "Deshabilitada");
     }
 }

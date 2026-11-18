@@ -76,7 +76,7 @@ public class Pelicula {
                 " | Genero: " + genero +
                 " | Duracion: " + duracionMinutos + " minutos" +
                 " | Clasificacion: " + clasificacion +
-                " | Activa: " + activa;
+                " | Estado: " + (activa ? "Activa" : "Inactiva");
     }
 
 }

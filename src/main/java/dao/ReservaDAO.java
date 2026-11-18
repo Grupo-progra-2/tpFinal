@@ -88,11 +88,6 @@ public class ReservaDAO {
         }
     }
 
-    public Reserva buscarReserva(int idReserva) throws PersistenciaException {
-        List<Reserva> reservas = buscar(CONSULTA + " WHERE r.id_reserva = ?", idReserva);
-        return reservas.isEmpty() ? null : reservas.get(0);
-    }
-
     public List<Reserva> listarPorCliente(int idCliente) throws PersistenciaException {
         return buscar(CONSULTA + " WHERE r.id_cliente = ? ORDER BY r.fecha_reserva DESC, r.id_reserva DESC", idCliente);
     }
@@ -123,17 +118,6 @@ public class ReservaDAO {
         }
     }
 
-    public void confirmarReserva(int idReserva) throws PersistenciaException {
-        // Crear una reserva la confirma; una cancelada es histórica y no se reabre.
-        try (Connection conexion = ConexionDB.obtenerConexion()) {
-            if (estadoActual(conexion, idReserva) != EstadoReserva.CONFIRMADA) {
-                throw new PersistenciaException("La reserva está cancelada. Creá otra para volver a ocupar el asiento.");
-            }
-        } catch (SQLException | ElementoNoEncontradoException e) {
-            throw new PersistenciaException("No se pudo confirmar la reserva: " + e.getMessage(), e);
-        }
-    }
-
     private EstadoReserva estadoActual(Connection conexion, int idReserva)
             throws SQLException, ElementoNoEncontradoException {
         try (PreparedStatement stmt = conexion.prepareStatement("SELECT estado FROM reserva WHERE id_reserva = ?")) {
@@ -144,20 +128,6 @@ public class ReservaDAO {
                 }
                 return EstadoReserva.valueOf(fila.getString(1));
             }
-        }
-    }
-
-    public boolean asientoOcupado(int idFuncion, int asiento) throws PersistenciaException {
-        String sql = "SELECT 1 FROM reserva WHERE id_funcion = ? AND asiento_confirmado = ? LIMIT 1";
-        try (Connection conexion = ConexionDB.obtenerConexion();
-             PreparedStatement stmt = conexion.prepareStatement(sql)) {
-            stmt.setInt(1, idFuncion);
-            stmt.setInt(2, asiento);
-            try (ResultSet fila = stmt.executeQuery()) {
-                return fila.next();
-            }
-        } catch (SQLException e) {
-            throw new PersistenciaException("No se pudo consultar el asiento.", e);
         }
     }
 

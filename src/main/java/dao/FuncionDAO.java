@@ -142,10 +142,6 @@ public class FuncionDAO {
         }
     }
 
-    public List<Funcion> listarPorPelicula(int idPelicula) throws PersistenciaException {
-        return listarDisponibles(idPelicula);
-    }
-
     public List<Funcion> listarDisponibles() throws PersistenciaException {
         return listarDisponibles(null);
     }

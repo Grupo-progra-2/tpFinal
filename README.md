@@ -1,6 +1,6 @@
 # CineGestor
 
-Trabajo práctico de Programación II de la UTN. Aplicación de consola en Java 21 con Maven, JDBC y MySQL 8.0.
+Trabajo práctico de Programación II de la UTN. Aplicación de escritorio en Java 21 con JavaFX, Maven, JDBC y MySQL 8.0. También incluye el menú de consola.
 
 ## Configurar la base
 
@@ -14,7 +14,11 @@ Configurá estas variables en la configuración de ejecución de IntelliJ, en **
 | `CINE_DB_USER` | `root` |
 | `CINE_DB_PASSWORD` | Vacía |
 
-Usá el usuario y la contraseña de MySQL que correspondan a tu entorno. Cargá al menos una película activa, una sala habilitada y un cliente para recorrer el menú de reservas. Ejecutá `org.cine.Main` desde IntelliJ.
+Usá el usuario y la contraseña de MySQL que correspondan a tu entorno. Cargá al menos una película activa, una sala habilitada y un cliente para recorrer el menú de reservas. Para abrir la ventana, recargá Maven, elegí la configuración **CineGestor** de IntelliJ y presioná ▶. El punto de entrada gráfico es `org.cine.Presentacion`. Configurá en esa ejecución las mismas variables de MySQL que usás en la consola. Podés seguir ejecutando `org.cine.Main` para usar el menú de texto.
+
+## Presentación gráfica
+
+En **Cartelera** elegí una función y presioná **Elegir asiento**. Seleccioná el cliente, el asiento y el tipo de entrada. Para una entrada reducida, escribí el descuento y verificá el total antes de confirmar. **Ver informe** muestra la ocupación y la recaudación. En **Reservas** podés consultar el historial de un cliente y cancelar una reserva. En **Administración** se gestionan películas, salas y clientes.
 
 ## Pruebas
 

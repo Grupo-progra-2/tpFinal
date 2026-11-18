@@ -103,7 +103,8 @@ final class EscenariosCine {
             debeFallar(AsientoOcupadoException.class, () -> cine.crearReserva(cliente, id, 2, TipoEntrada.GENERAL, null));
 
             new GestorCine().cancelarReserva(primera.getIdReserva());
-            cine.cancelarReserva(primera.getIdReserva());
+            // Cancelar de nuevo una reserva ya cancelada tiene que dar error
+            debeFallar(IllegalArgumentException.class, () -> cine.cancelarReserva(primera.getIdReserva()));
             debeFallar(ElementoNoEncontradoException.class, () -> cine.cancelarReserva(0));
             Reserva segunda = new GestorCine().crearReserva(cliente, id, 2, TipoEntrada.GENERAL, null);
             comprobar(segunda.getIdReserva() != primera.getIdReserva(), "volver a reservar con nuevo ID");

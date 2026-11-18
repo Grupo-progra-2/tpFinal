@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="CineGestor" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="org.cine.Presentacion" />
+    <module name="TP_Progra2" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

@@ -4,7 +4,7 @@ USE cine;
 
 CREATE TABLE IF NOT EXISTS pelicula (
     id_pelicula INT AUTO_INCREMENT PRIMARY KEY,
-    titulo VARCHAR(100) NOT NULL,
+    titulo VARCHAR(100) NOT NULL UNIQUE,
     genero VARCHAR(50),
     duracion_minutos INT NOT NULL,
     clasificacion VARCHAR(10),
@@ -67,3 +67,31 @@ CREATE TABLE IF NOT EXISTS reserva (
     FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente),
     FOREIGN KEY (id_funcion) REFERENCES funcion(id_funcion)
 );
+
+-- Datos de ejemplo: 2 salas y 20 peliculas
+-- (INSERT IGNORE evita duplicados si se ejecuta el script mas de una vez)
+INSERT IGNORE INTO sala (numero, capacidad, habilitada) VALUES
+    (1, 60, TRUE),
+    (2, 40, TRUE);
+
+INSERT IGNORE INTO pelicula (titulo, genero, duracion_minutos, clasificacion, activa) VALUES
+    ('El Padrino', 'Drama', 175, '+16', TRUE),
+    ('Volver al Futuro', 'Ciencia ficción', 116, 'ATP', TRUE),
+    ('Jurassic Park', 'Aventura', 127, '+13', TRUE),
+    ('Toy Story', 'Animación', 81, 'ATP', TRUE),
+    ('Matrix', 'Ciencia ficción', 136, '+16', TRUE),
+    ('Titanic', 'Romance', 195, '+13', TRUE),
+    ('El Rey León', 'Animación', 88, 'ATP', TRUE),
+    ('Gladiador', 'Acción', 155, '+16', TRUE),
+    ('Forrest Gump', 'Drama', 142, '+13', TRUE),
+    ('Shrek', 'Animación', 90, 'ATP', TRUE),
+    ('El Señor de los Anillos', 'Fantasía', 178, '+13', TRUE),
+    ('Harry Potter y la piedra filosofal', 'Fantasía', 152, 'ATP', TRUE),
+    ('Mad Max: Furia en el camino', 'Acción', 120, '+16', TRUE),
+    ('El Resplandor', 'Terror', 146, '+18', TRUE),
+    ('Psicosis', 'Terror', 109, '+16', TRUE),
+    ('Intensamente', 'Animación', 95, 'ATP', TRUE),
+    ('Mi pobre angelito', 'Comedia', 103, 'ATP', TRUE),
+    ('Nueve reinas', 'Suspenso', 114, '+13', TRUE),
+    ('El secreto de sus ojos', 'Suspenso', 129, '+16', TRUE),
+    ('Relatos salvajes', 'Comedia', 122, '+16', TRUE);

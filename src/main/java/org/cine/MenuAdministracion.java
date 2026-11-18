@@ -1,19 +1,22 @@
 package org.cine;
 
-import dao.PeliculaDAO;
-import dao.SalaDAO;
 import dao.ClienteDAO;
+import dao.PeliculaDAO;
+import dao.ReservaDAO;
+import dao.SalaDAO;
+import excepciones.DatoInvalidoException;
+import excepciones.ElementoNoEncontradoException;
 import excepciones.PersistenciaException;
+import org.cine.modelo.Cliente;
 import org.cine.modelo.Pelicula;
 import org.cine.modelo.Sala;
-import org.cine.modelo.Cliente;
-import excepciones.DatoInvalidoException;
 
 final class MenuAdministracion {
     private final Consola consola;
     private final PeliculaDAO peliculas = new PeliculaDAO();
     private final SalaDAO salas = new SalaDAO();
     private final ClienteDAO clientes = new ClienteDAO();
+    private final ReservaDAO reservas = new ReservaDAO();
 
     MenuAdministracion(Consola consola) {
         this.consola = consola;
@@ -21,9 +24,9 @@ final class MenuAdministracion {
 
     void ejecutar() {
         while (true) {
+            consola.limpiar();
+            consola.encabezado("ADMINISTRACIÓN");
             System.out.println("""
-                    ADMINISTRACIÓN
-
                     1. Películas
                     2. Salas
                     3. Clientes
@@ -31,95 +34,25 @@ final class MenuAdministracion {
                     """);
             try {
                 switch (consola.entero("Opción: ")) {
-                        case 0 -> { return; }
-                        case 1 -> menuPeliculas();
-                        case 2 -> menuSalas();
-                        case 3 -> menuClientes();
+                    case 0 -> { return; }
+                    case 1 -> menuPeliculas();
+                    case 2 -> menuSalas();
+                    case 3 -> menuClientes();
                     default -> System.out.println("Opción inválida.");
                 }
-            } catch (PersistenciaException | IllegalArgumentException e) {
-                System.out.println(e.getMessage());
+            } catch (PersistenciaException | DatoInvalidoException | ElementoNoEncontradoException e) {
+                System.out.println("Error: " + e.getMessage());
             }
+            consola.pausar();
         }
     }
 
-    private String obligatorio(String pregunta) {
-        String valor = consola.texto(pregunta);
-        if (valor.isEmpty()) throw new IllegalArgumentException("El campo no puede quedar vacío.");
-        return valor;
-    }
+    // ---------------- PELICULAS ----------------
 
-
-    private String emailValido(String pregunta) {
-        while (true) {
-            try {
-                String email = consola.texto(pregunta);
-
-                if (!email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
-                    throw new DatoInvalidoException(
-                            "Email inválido. Ejemplo: usuario@gmail.com"
-                    );
-                }
-
-                return email;
-
-            } catch (DatoInvalidoException e) {
-                System.out.println(e.getMessage());
-            }
-        }
-    }
-
-
-
-    private String dniValido(String pregunta) {
-        while (true) {
-            try {
-                String dni = consola.texto(pregunta);
-
-                if (!dni.matches("\\d{7,8}")) {
-                    throw new DatoInvalidoException(
-                            "DNI inválido. Ingresá 7 u 8 números sin puntos ni letras."
-                    );
-                }
-
-                return dni;
-
-            } catch (DatoInvalidoException e) {
-                System.out.println(e.getMessage());
-            }
-        }
-    }
-
-
-
-    private String nombreValido(String pregunta) {
-        while (true) {
-            try {
-                String valor = consola.texto(pregunta);
-
-                if (valor.isEmpty() ||
-                        !valor.matches("[\\p{L}]+(?:[ '-][\\p{L}]+)*")) {
-
-                    throw new DatoInvalidoException(
-                            "Nombre o apellido inválido. Ingresá solamente letras."
-                    );
-                }
-
-                return valor;
-
-            } catch (DatoInvalidoException e) {
-                System.out.println(e.getMessage());
-            }
-        }
-    }
-
-
-
-
-
-    private void menuPeliculas() throws PersistenciaException {
+    private void menuPeliculas() throws PersistenciaException, DatoInvalidoException, ElementoNoEncontradoException {
+        consola.limpiar();
+        consola.encabezado("PELÍCULAS");
         System.out.println("""
-                PELÍCULAS
                 1. Agregar película
                 2. Listar películas
                 3. Modificar película
@@ -134,36 +67,57 @@ final class MenuAdministracion {
         }
     }
 
+    // Pide el titulo hasta que no este vacio y no se repita (sin importar mayusculas)
+    private String tituloNuevo(String pregunta, int idActual) throws PersistenciaException {
+        while (true) {
+            String titulo = consola.textoObligatorio(pregunta, "título");
+            boolean repetido = false;
+            for (Pelicula p : peliculas.listar()) {
+                if (p.getTitulo().equalsIgnoreCase(titulo) && p.getIdPelicula() != idActual) {
+                    repetido = true;
+                }
+            }
+            if (!repetido) {
+                return titulo;
+            }
+            System.out.println("Error: ya existe una película con ese título.");
+        }
+    }
+
+    private Pelicula buscarPelicula(int id) throws PersistenciaException, ElementoNoEncontradoException {
+        Pelicula pelicula = peliculas.buscarPorId(id);
+        if (pelicula == null) {
+            throw new ElementoNoEncontradoException("No existe ninguna película con el ID " + id + ".");
+        }
+        return pelicula;
+    }
+
     private void altaPelicula() throws PersistenciaException {
-        String titulo = obligatorio("Título: ");
-        String genero = obligatorio("Género: ");
-        int duracion = consola.entero("Duración en minutos: ");
-        String clasificacion = obligatorio("Clasificación: ");
-        if (duracion <= 0) throw new IllegalArgumentException("La duración debe ser positiva.");
+        String titulo = tituloNuevo("Título: ", 0);
+        String genero = consola.genero();
+        int duracion = consola.numero("Duración en minutos: ", "duración", 1, 600);
+        String clasificacion = consola.clasificacion();
         Pelicula pelicula = new Pelicula(null, titulo, genero, duracion, clasificacion, true);
         peliculas.guardarPelicula(pelicula);
         System.out.println("Película guardada con ID " + pelicula.getIdPelicula());
     }
 
     private void listarPeliculas() throws PersistenciaException {
+        if (peliculas.listar().isEmpty()) {
+            System.out.println("No hay películas cargadas.");
+        }
         for (Pelicula pelicula : peliculas.listar()) {
             System.out.println(pelicula.getIdPelicula() + " - " + pelicula);
         }
     }
 
-    private void modificarPelicula() throws PersistenciaException {
-        int id = consola.entero("ID de película: ");
-        Pelicula pelicula = peliculas.buscarPorId(id);
-        if (pelicula == null) {
-            System.out.println("No existe esa película.");
-            return;
-        }
+    private void modificarPelicula() throws PersistenciaException, ElementoNoEncontradoException {
+        Pelicula pelicula = buscarPelicula(consola.entero("ID de película: "));
         System.out.println("Actual: " + pelicula);
-        String titulo = obligatorio("Nuevo título: ");
-        String genero = obligatorio("Nuevo género: ");
-        int duracion = consola.entero("Nueva duración: ");
-        String clasificacion = obligatorio("Nueva clasificación: ");
-        if (duracion <= 0) throw new IllegalArgumentException("La duración debe ser positiva.");
+        String titulo = tituloNuevo("Nuevo título: ", pelicula.getIdPelicula());
+        String genero = consola.genero();
+        int duracion = consola.numero("Nueva duración: ", "duración", 1, 600);
+        String clasificacion = consola.clasificacion();
         pelicula.setTitulo(titulo);
         pelicula.setGenero(genero);
         pelicula.setDuracionMinutos(duracion);
@@ -172,21 +126,22 @@ final class MenuAdministracion {
         System.out.println("Película modificada.");
     }
 
-    private void desactivarPelicula() throws PersistenciaException {
-        int id = consola.entero("ID de película: ");
-        Pelicula pelicula = peliculas.buscarPorId(id);
-        if (pelicula == null) {
-            System.out.println("No existe esa película.");
-            return;
+    private void desactivarPelicula() throws PersistenciaException, DatoInvalidoException, ElementoNoEncontradoException {
+        Pelicula pelicula = buscarPelicula(consola.entero("ID de película: "));
+        if (!pelicula.estaActiva()) {
+            throw new DatoInvalidoException("La película ya está desactivada.");
         }
         pelicula.setActiva(false);
         peliculas.actualizar(pelicula);
         System.out.println("Película desactivada.");
     }
 
-    private void menuSalas() throws PersistenciaException {
+    // ---------------- SALAS ----------------
+
+    private void menuSalas() throws PersistenciaException, ElementoNoEncontradoException {
+        consola.limpiar();
+        consola.encabezado("SALAS");
         System.out.println("""
-                SALAS
                 1. Agregar sala
                 2. Listar salas
                 3. Modificar sala
@@ -201,103 +156,164 @@ final class MenuAdministracion {
         }
     }
 
+    private Sala buscarSala(int id) throws PersistenciaException, ElementoNoEncontradoException {
+        Sala sala = salas.buscarPorId(id);
+        if (sala == null) {
+            throw new ElementoNoEncontradoException("No existe ninguna sala con el ID " + id + ".");
+        }
+        return sala;
+    }
+
+    // Pide el numero de sala (positivo) hasta que no este repetido
+    private int numeroSalaNuevo(String pregunta, int idActual) throws PersistenciaException {
+        while (true) {
+            int numero = consola.numero(pregunta, "número de sala", 1, 99);
+            boolean repetido = false;
+            for (Sala s : salas.listar()) {
+                if (s.getNumero() == numero && s.getIdSala() != idActual) {
+                    repetido = true;
+                }
+            }
+            if (!repetido) {
+                return numero;
+            }
+            System.out.println("Error: ya existe una sala con ese número.");
+        }
+    }
+
     private void altaSala() throws PersistenciaException {
-        int numero = consola.entero("Número de sala: ");
-        int capacidad = consola.entero("Capacidad: ");
-        if (numero <= 0 || capacidad <= 0) throw new IllegalArgumentException("Número y capacidad deben ser positivos.");
+        int numero = numeroSalaNuevo("Número de sala: ", 0);
+        int capacidad = consola.numero("Capacidad: ", "capacidad", 1, 500);
         Sala sala = new Sala(0, numero, capacidad, true);
         salas.guardar(sala);
         System.out.println("Sala guardada con ID " + sala.getIdSala());
     }
 
     private void listarSalas() throws PersistenciaException {
+        if (salas.listar().isEmpty()) {
+            System.out.println("No hay salas cargadas.");
+        }
         for (Sala sala : salas.listar()) {
             System.out.println(sala.getIdSala() + " - " + sala);
         }
     }
 
-    private void modificarSala() throws PersistenciaException {
-        Sala sala = salas.buscarPorId(consola.entero("ID de sala: "));
-        if (sala == null) {
-            System.out.println("No existe esa sala.");
-            return;
-        }
+    private void modificarSala() throws PersistenciaException, ElementoNoEncontradoException {
+        Sala sala = buscarSala(consola.entero("ID de sala: "));
         System.out.println("Actual: " + sala);
-        int numero = consola.entero("Nuevo número: ");
-        int capacidad = consola.entero("Nueva capacidad: ");
-        if (numero <= 0 || capacidad <= 0) throw new IllegalArgumentException("Número y capacidad deben ser positivos.");
+        int numero = numeroSalaNuevo("Nuevo número: ", sala.getIdSala());
+        int capacidad = consola.numero("Nueva capacidad: ", "capacidad", 1, 500);
         sala.setNumero(numero);
         sala.setCapacidad(capacidad);
         salas.actualizar(sala);
         System.out.println("Sala modificada.");
     }
 
-    private void cambiarEstadoSala() throws PersistenciaException {
-        Sala sala = salas.buscarPorId(consola.entero("ID de sala: "));
-        if (sala == null) {
-            System.out.println("No existe esa sala.");
-            return;
-        }
+    private void cambiarEstadoSala() throws PersistenciaException, ElementoNoEncontradoException {
+        Sala sala = buscarSala(consola.entero("ID de sala: "));
         sala.setHabilitada(!sala.estaHabilitada());
         salas.actualizar(sala);
         System.out.println("Nuevo estado: " + (sala.estaHabilitada() ? "habilitada" : "deshabilitada"));
     }
 
-    private void menuClientes() throws PersistenciaException {
+    // ---------------- CLIENTES ----------------
+
+    private void menuClientes() throws PersistenciaException, DatoInvalidoException, ElementoNoEncontradoException {
+        consola.limpiar();
+        consola.encabezado("CLIENTES");
         System.out.println("""
-                CLIENTES
                 1. Registrar cliente
                 2. Listar clientes
                 3. Buscar cliente por DNI
                 4. Modificar cliente
+                5. Dar de baja cliente
                 """);
         switch (consola.entero("Opción: ")) {
             case 1 -> altaCliente();
             case 2 -> listarClientes();
             case 3 -> buscarCliente();
             case 4 -> modificarCliente();
+            case 5 -> eliminarCliente();
             default -> System.out.println("Opción inválida.");
         }
     }
 
+    private Cliente buscarCliente(int id) throws PersistenciaException, ElementoNoEncontradoException {
+        Cliente cliente = clientes.buscarPorId(id);
+        if (cliente == null) {
+            throw new ElementoNoEncontradoException("No existe ningún cliente con el ID " + id + ".");
+        }
+        return cliente;
+    }
+
+    // Pide el DNI hasta que sea valido y no lo tenga otro cliente
+    private String dniNuevo(String pregunta, int idActual) throws PersistenciaException {
+        while (true) {
+            String dni = consola.dni(pregunta);
+            Cliente existente = clientes.buscarPorDni(dni);
+            if (existente == null || existente.getId() == idActual) {
+                return dni;
+            }
+            System.out.println("Error: ya existe un cliente con ese DNI.");
+        }
+    }
+
     private void altaCliente() throws PersistenciaException {
-        String nombre = nombreValido("Nombre: ");
-        String apellido = nombreValido("Apellido: ");
-        String dni = dniValido("DNI: ");
-        String email = emailValido("Email: ");
-        String clave = consola.texto("Clave de acceso: ");
+        String nombre = consola.nombre("Nombre: ", "nombre");
+        String apellido = consola.nombre("Apellido: ", "apellido");
+        String dni = dniNuevo("DNI: ", 0);
+        String email = consola.email("Email: ");
+        String clave = consola.clave("Clave de acceso: ");
         Cliente cliente = new Cliente(null, nombre, apellido, dni, email, clave);
         clientes.guardarCliente(cliente);
         System.out.println("Cliente registrado con ID " + cliente.getId());
     }
 
     private void listarClientes() throws PersistenciaException {
+        if (clientes.listar().isEmpty()) {
+            System.out.println("No hay clientes cargados.");
+        }
         for (Cliente cliente : clientes.listar()) {
             System.out.println(cliente.getId() + " - " + cliente);
         }
     }
 
-    private void buscarCliente() throws PersistenciaException {
-        Cliente cliente = clientes.buscarPorDni(obligatorio("DNI: "));
-        System.out.println(cliente == null ? "No existe ese cliente." : cliente);
+    private void buscarCliente() throws PersistenciaException, ElementoNoEncontradoException {
+        Cliente cliente = clientes.buscarPorDni(consola.dni("DNI a buscar: "));
+        if (cliente == null) {
+            throw new ElementoNoEncontradoException("No existe un cliente con ese DNI.");
+        }
+        System.out.println(cliente);
     }
 
-    private void modificarCliente() throws PersistenciaException {
-        Cliente cliente = clientes.buscarPorId(consola.entero("ID de cliente: "));
-        if (cliente == null) {
-            System.out.println("No existe ese cliente.");
-            return;
-        }
+    private void modificarCliente() throws PersistenciaException, ElementoNoEncontradoException {
+        Cliente cliente = buscarCliente(consola.entero("ID de cliente: "));
         System.out.println("Actual: " + cliente);
-        String nombre = nombreValido("Nuevo nombre: ");
-        String apellido = nombreValido("Nuevo apellido: ");
-        String dni = dniValido("Nuevo DNI: ");
-        String email = emailValido("Nuevo email: ");
+        String nombre = consola.nombre("Nuevo nombre: ", "nombre");
+        String apellido = consola.nombre("Nuevo apellido: ", "apellido");
+        String dni = dniNuevo("Nuevo DNI: ", cliente.getId());
+        String email = consola.email("Nuevo email: ");
         cliente.setNombre(nombre);
         cliente.setApellido(apellido);
         cliente.setDni(dni);
         cliente.setEmail(email);
         clientes.actualizar(cliente);
         System.out.println("Cliente modificado.");
+    }
+
+    // Da de baja a un cliente. Si no existe o tiene reservas se muestra el error
+    private void eliminarCliente() throws PersistenciaException, DatoInvalidoException, ElementoNoEncontradoException {
+        Cliente cliente = buscarCliente(consola.entero("ID de cliente a dar de baja: "));
+        if (!reservas.listarPorCliente(cliente.getId()).isEmpty()) {
+            throw new DatoInvalidoException("El cliente tiene reservas, no se puede dar de baja.");
+        }
+        System.out.println(cliente);
+        String respuesta = consola.texto("¿Seguro que querés darlo de baja? (s/n): ");
+        if (respuesta.equalsIgnoreCase("s")) {
+            clientes.eliminar(cliente.getId());
+            System.out.println("Cliente dado de baja.");
+        } else {
+            System.out.println("No se dio de baja al cliente.");
+        }
     }
 }

@@ -61,6 +61,13 @@ public class GestorCine {
         if (fechaHora == null) {
             throw new DatoInvalidoException("Ingresá el día y la hora de la función.");
         }
+        // No se puede programar una función en una fecha que ya pasó
+        if (!fechaHora.isAfter(LocalDateTime.now())) {
+            throw new DatoInvalidoException("No se puede programar una función en una fecha pasada.");
+        }
+        if (precio == null || precio.signum() <= 0) {
+            throw new DatoInvalidoException("El precio debe ser mayor a 0.");
+        }
         Funcion funcion = new Funcion(0, pelicula, sala, fechaHora.withNano(0), precio, EstadoFuncion.PROGRAMADA);
         funciones.guardar(funcion);
         return funcion;

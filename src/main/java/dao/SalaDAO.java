@@ -43,27 +43,57 @@ public class SalaDAO {
         }
     }
 
+
     public void actualizar(Sala sala) throws PersistenciaException {
-        String sql = "UPDATE sala SET numero = ?, capacidad = ?, habilitada = ? WHERE id_sala = ?";
+        String verificar = """
+        SELECT 1
+        FROM reserva r
+        JOIN funcion f ON r.id_funcion = f.id_funcion
+        WHERE f.id_sala = ?
+          AND f.estado = 'PROGRAMADA'
+          AND f.fecha_hora > NOW()
+          AND r.estado = 'CONFIRMADA'
+          AND r.numero_asiento > ?
+        LIMIT 1
+        """;
 
-        try (Connection conexion = ConexionDB.obtenerConexion();
-             PreparedStatement ps = conexion.prepareStatement(sql)) {
+        String sql = """
+        UPDATE sala
+        SET numero = ?, capacidad = ?, habilitada = ?
+        WHERE id_sala = ?
+        """;
 
-            ps.setInt(1, sala.getNumero());
-            ps.setInt(2, sala.getCapacidad());
-            ps.setBoolean(3, sala.estaHabilitada());
-            ps.setInt(4, sala.getIdSala());
+        try (Connection conexion = ConexionDB.obtenerConexion()) {
 
-            int filas = ps.executeUpdate();
+            try (PreparedStatement ps = conexion.prepareStatement(verificar)) {
+                ps.setInt(1, sala.getIdSala());
+                ps.setInt(2, sala.getCapacidad());
 
-            if (filas == 0) {
-                throw new PersistenciaException("No existe la sala indicada.");
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        throw new PersistenciaException(
+                                "No se puede reducir la capacidad: existen asientos reservados fuera del nuevo límite."
+                        );
+                    }
+                }
+            }
+
+            try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+                ps.setInt(1, sala.getNumero());
+                ps.setInt(2, sala.getCapacidad());
+                ps.setBoolean(3, sala.estaHabilitada());
+                ps.setInt(4, sala.getIdSala());
+
+                if (ps.executeUpdate() == 0) {
+                    throw new PersistenciaException("No existe la sala indicada.");
+                }
             }
 
         } catch (SQLException e) {
             throw new PersistenciaException("Error al actualizar la sala", e);
         }
     }
+
 
 
 

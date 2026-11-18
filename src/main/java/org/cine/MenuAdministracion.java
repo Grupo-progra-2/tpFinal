@@ -7,6 +7,7 @@ import excepciones.PersistenciaException;
 import org.cine.modelo.Pelicula;
 import org.cine.modelo.Sala;
 import org.cine.modelo.Cliente;
+import excepciones.DatoInvalidoException;
 
 final class MenuAdministracion {
     private final Consola consola;
@@ -47,6 +48,74 @@ final class MenuAdministracion {
         if (valor.isEmpty()) throw new IllegalArgumentException("El campo no puede quedar vacío.");
         return valor;
     }
+
+
+    private String emailValido(String pregunta) {
+        while (true) {
+            try {
+                String email = consola.texto(pregunta);
+
+                if (!email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+                    throw new DatoInvalidoException(
+                            "Email inválido. Ejemplo: usuario@gmail.com"
+                    );
+                }
+
+                return email;
+
+            } catch (DatoInvalidoException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+    }
+
+
+
+    private String dniValido(String pregunta) {
+        while (true) {
+            try {
+                String dni = consola.texto(pregunta);
+
+                if (!dni.matches("\\d{7,8}")) {
+                    throw new DatoInvalidoException(
+                            "DNI inválido. Ingresá 7 u 8 números sin puntos ni letras."
+                    );
+                }
+
+                return dni;
+
+            } catch (DatoInvalidoException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+    }
+
+
+
+    private String nombreValido(String pregunta) {
+        while (true) {
+            try {
+                String valor = consola.texto(pregunta);
+
+                if (valor.isEmpty() ||
+                        !valor.matches("[\\p{L}]+(?:[ '-][\\p{L}]+)*")) {
+
+                    throw new DatoInvalidoException(
+                            "Nombre o apellido inválido. Ingresá solamente letras."
+                    );
+                }
+
+                return valor;
+
+            } catch (DatoInvalidoException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+    }
+
+
+
+
 
     private void menuPeliculas() throws PersistenciaException {
         System.out.println("""
@@ -192,10 +261,10 @@ final class MenuAdministracion {
     }
 
     private void altaCliente() throws PersistenciaException {
-        String nombre = obligatorio("Nombre: ");
-        String apellido = obligatorio("Apellido: ");
-        String dni = obligatorio("DNI: ");
-        String email = consola.texto("Email: ");
+        String nombre = nombreValido("Nombre: ");
+        String apellido = nombreValido("Apellido: ");
+        String dni = dniValido("DNI: ");
+        String email = emailValido("Email: ");
         String clave = consola.texto("Clave de acceso: ");
         Cliente cliente = new Cliente(null, nombre, apellido, dni, email, clave);
         clientes.guardarCliente(cliente);
@@ -220,10 +289,10 @@ final class MenuAdministracion {
             return;
         }
         System.out.println("Actual: " + cliente);
-        String nombre = obligatorio("Nuevo nombre: ");
-        String apellido = obligatorio("Nuevo apellido: ");
-        String dni = obligatorio("Nuevo DNI: ");
-        String email = consola.texto("Nuevo email: ");
+        String nombre = nombreValido("Nuevo nombre: ");
+        String apellido = nombreValido("Nuevo apellido: ");
+        String dni = dniValido("Nuevo DNI: ");
+        String email = emailValido("Nuevo email: ");
         cliente.setNombre(nombre);
         cliente.setApellido(apellido);
         cliente.setDni(dni);

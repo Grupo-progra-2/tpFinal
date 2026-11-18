@@ -65,6 +65,7 @@ classDiagram
     direction TB
     class Main
     class MenuReservas
+    class MenuAdministracion
     class GestorCine {
         +programarFuncion() Funcion
         +crearReserva() Reserva
@@ -83,6 +84,10 @@ classDiagram
     class ClienteDAO
     class ConexionDB
     Main --> MenuReservas
+    Main --> MenuAdministracion
+    MenuAdministracion --> PeliculaDAO
+    MenuAdministracion --> SalaDAO
+    MenuAdministracion --> ClienteDAO
     MenuReservas --> GestorCine
     GestorCine ..> Repositorio : asientos libres
     GestorCine --> FuncionDAO
